@@ -7,8 +7,18 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/TargetSelect.h"
 
+#include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/ASTMatchers/ASTMatchersMacros.h"
+#include "clang/Tooling/Transformer/RewriteRule.h"
+#include "clang/Tooling/Transformer/Stencil.h"
+#include "clang/Tooling/Transformer/Transformer.h"
 using namespace clang::tooling;
 using namespace llvm;
+//using namespace llvm::cl;
+
+using namespace clang::ast_matchers;
+using namespace clang::transformer;
 
 // Apply a custom category to all command-line options so that they are the
 // only ones displayed.
@@ -23,6 +33,25 @@ static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 // A help message for this specific tool can be added afterwards.
 static cl::extrahelp MoreHelp("\nMore help text...\n");
 #endif
+
+#include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+
+using namespace clang;
+using namespace clang::ast_matchers;
+
+StatementMatcher LoopMatcher =
+        forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(
+                hasInitializer(integerLiteral(equals(0)))))))).bind("forLoop");
+
+class LoopPrinter : public MatchFinder::MatchCallback {
+public :
+    virtual void run(const MatchFinder::MatchResult &Result) {
+        if (const ForStmt *FS = Result.Nodes.getNodeAs<clang::ForStmt>("forLoop"))
+            FS->dump();
+    }
+};
+
 
 int main(int argc, const char **argv) {
     llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
@@ -49,5 +78,18 @@ int main(int argc, const char **argv) {
     ClangTool Tool(OptionsParser.getCompilations(),
                    OptionsParser.getSourcePathList());
 
-    return Tool.run(newFrontendActionFactory<clang::SyntaxOnlyAction>().get());
+    auto rule = makeRule(functionDecl(hasName("MkX")).bind("fun"),
+             noopEdit(node("fun")),
+             cat("The name ``MkX`` is not allowed for functions; please rename"));
+//    makeRule(declRefExpr(to(functionDecl(hasName("MkX")))),
+//             changeTo(cat("MakeX")),
+//             cat("MkX has been renamed MakeX"));
+
+//    return Tool.run(newFrontendActionFactory<clang::SyntaxOnlyAction>().get());
+
+    LoopPrinter Printer;
+    MatchFinder Finder;
+    Finder.addMatcher(LoopMatcher, &Printer);
+
+    return Tool.run(newFrontendActionFactory(&Finder).get());
 }

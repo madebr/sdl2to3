@@ -2,16 +2,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 cmake_minimum_required(VERSION 3.16)
 project(sdl2to3 LANGUAGES C CXX)
 
+find_package(LLVM 15.0 REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
-find_package(LLVM REQUIRED CONFIG)
 
 include("${LLVM_CMAKE_DIR}/AddLLVM.cmake")
 include("${CLANG_CMAKE_DIR}/AddClang.cmake")
 
-add_executable(sdl2to3
-    main.cpp
+add_library(sdl2to3_plugin MODULE
+    src/plugin.cpp
+
+    src/includes/SDL3SubfolderIncludeCheck.cpp
+    src/deprecated/SDL3RemovedFunctionsCheck.cpp
 )
-clang_target_link_libraries(sdl2to3
+clang_target_link_libraries(sdl2to3_plugin
     PRIVATE
         clangAST
         clangBasic
@@ -23,6 +26,8 @@ clang_target_link_libraries(sdl2to3
         clangTooling
         clangToolingSyntax
 )
-target_link_libraries(sdl2to3 PRIVATE LLVM)
-set_target_properties(sdl2to3 PROPERTIES CXX_STANDARD 20)
-target_compile_options(sdl2to3 PRIVATE -fno-rtti)
+target_link_libraries(sdl2to3_plugin PRIVATE LLVM)
+set_target_properties(sdl2to3_plugin PROPERTIES CXX_STANDARD 20)
+set_target_properties(sdl2to3_plugin PROPERTIES PREFIX "")
+set_target_properties(sdl2to3_plugin PROPERTIES OUTPUT_NAME "sdl2to3")
+target_compile_options(sdl2to3_plugin PRIVATE -fno-rtti)
