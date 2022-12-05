@@ -1,6 +1,6 @@
 #include "SDL.h"
 
-#include "SDL_config.h"
+#include "SDL_stdinc.h"
 
 #include "SDL2/SDL_syswm.h"
 

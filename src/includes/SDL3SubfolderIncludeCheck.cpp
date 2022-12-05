@@ -3,10 +3,15 @@
 #include "clang/Lex/Preprocessor.h"
 #include "llvm/ADT/StringSet.h"
 #include "llvm/ADT/Twine.h"
+#include <clang/Basic/Diagnostic.h>
 
 #include <unordered_set>
 
 namespace sdl2to3::tidy::includes {
+
+// FIXME: SDL_config.h is removed
+// FIXME: SDL_opengles.h is removed
+// FIXME: SDL_net.h will not survive the jump to SDL3
 
 static const StringSet sdl2_headers = {
     "begin_code.h",
@@ -17,7 +22,6 @@ static const StringSet sdl2_headers = {
     "SDL_bits.h",
     "SDL_blendmode.h",
     "SDL_clipboard.h",
-    "SDL_config.h",
     "SDL_copying.h",
     "SDL_cpuinfo.h",
     "SDL_egl.h",
@@ -50,7 +54,6 @@ static const StringSet sdl2_headers = {
     "SDL_opengles2_gl2platform.h",
     "SDL_opengles2.h",
     "SDL_opengles2_khrplatform.h",
-    "SDL_opengles.h",
     "SDL_opengl_glext.h",
     "SDL_opengl.h",
     "SDL_pixels.h",
@@ -60,8 +63,6 @@ static const StringSet sdl2_headers = {
     "SDL_rect.h",
     "SDL_render.h",
     "SDL_revision.h",
-    "SDL_revision-i386.h",
-    "SDL_revision-x86_64.h",
     "SDL_rwops.h",
     "SDL_scancode.h",
     "SDL_sensor.h",
@@ -131,13 +132,13 @@ void SDL3SubfolderIncludeCheck::registerPPCallbacks(
 Optional<std::string> suggest_SDL3_include(StringRef IncludePath) {
     IncludePath = llvm::sys::path::remove_leading_dotslash(IncludePath);
     if (sdl2_headers.contains(IncludePath)) {
-        return ("SDL3/" + Twine(IncludePath)).str();
+        return ("include <SDL3/" + Twine(IncludePath) + ">").str();
     }
     // FIXME: what about deprecated SDL2 headers?
     if (IncludePath.startswith("SDL2/")) {
         auto filename = IncludePath.substr(5);
         if (sdl2_headers.contains(filename)) {
-            return ("SDL3/" + Twine(filename)).str();
+            return ("include <SDL3/" + Twine(filename) + ">").str();
         }
     }
     return {};
@@ -149,8 +150,9 @@ void SDL3SubfolderIncludePPCallbacks::InclusionDirective(
         StringRef SearchPath, StringRef RelativePath, const Module *Imported,
         SrcMgr::CharacteristicKind FileType) {
 
-    if (IncludeTok.getIdentifierInfo()->getPPKeywordID() == tok::pp_import)
+    if (IncludeTok.getIdentifierInfo()->getPPKeywordID() == tok::pp_import) {
         return;
+    }
     auto suggestion = suggest_SDL3_include(FileName);
     if (!suggestion) {
         return;
@@ -158,8 +160,9 @@ void SDL3SubfolderIncludePPCallbacks::InclusionDirective(
 
     SourceLocation DiagLoc = FilenameRange.getBegin().getLocWithOffset(1);
 
-    Check.diag(DiagLoc, "SDL2-style file inclusion is deprecated.");
-    Check.diag(DiagLoc, "Include SDL3 using <%0> instead.") << *suggestion;
+    SourceRange rng(IncludeTok.getLocation(), FilenameRange.getEnd());
+    Check.diag(DiagLoc, "SDL2-style file inclusion is deprecated.")
+        << clang::FixItHint::CreateReplacement(rng, *suggestion);
 }
 
 } // namespace sdl2to3::tidy::includes

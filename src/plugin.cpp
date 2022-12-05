@@ -7,6 +7,10 @@
 
 #include "includes/SDL3SubfolderIncludeCheck.h"
 #include "deprecated/SDL3RemovedFunctionsCheck.h"
+#include "deprecated/SDL3RemovedSDL_CreateRGBSurfaceCheck.h"
+#include "deprecated/SDL3RemovedSDL_CreateRGBSurfaceWithFormatCheck.h"
+#include "deprecated/SDL3RemovedSDL_CreateRGBSurfaceFromCheck.h"
+#include "deprecated/SDL3RemovedSDL_CreateRGBSurfaceWithFormatFromCheck.h"
 
 using namespace clang;
 using namespace clang::tidy;
@@ -24,6 +28,10 @@ public:
     void addCheckFactories(ClangTidyCheckFactories &CheckFactories) override {
         CheckFactories.registerCheck<sdl2to3::tidy::includes::SDL3SubfolderIncludeCheck>("sdl2to3-includefolder");
         CheckFactories.registerCheck<sdl2to3::tidy::deprecated::SDL3RemovedFunctionsCheck>("sdl2to3-removedfunctions");
+        CheckFactories.registerCheck<sdl2to3::tidy::deprecated::SDL3RemovedSDL_CreateRGBSurfaceCheck>("sdl2to3-SDL_CreateRGBSurface");
+        CheckFactories.registerCheck<sdl2to3::tidy::deprecated::SDL3RemovedSDL_CreateRGBSurfaceWithFormatCheck>("sdl2to3-SDL_CreateRGBSurfaceWithFormat");
+        CheckFactories.registerCheck<sdl2to3::tidy::deprecated::SDL3RemovedSDL_CreateRGBSurfaceFromCheck>("sdl2to3-SDL_CreateRGBSurfaceFrom");
+        CheckFactories.registerCheck<sdl2to3::tidy::deprecated::SDL3RemovedSDL_CreateRGBSurfaceWithFormatFromCheck>("sdl2to3-SDL_CreateRGBSurfaceWithFormatFrom");
     }
 };
 } // namespace

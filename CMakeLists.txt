@@ -13,6 +13,10 @@ add_library(sdl2to3_plugin MODULE
 
     src/includes/SDL3SubfolderIncludeCheck.cpp
     src/deprecated/SDL3RemovedFunctionsCheck.cpp
+    src/deprecated/SDL3RemovedSDL_CreateRGBSurfaceCheck.cpp
+    src/deprecated/SDL3RemovedSDL_CreateRGBSurfaceWithFormatCheck.cpp
+    src/deprecated/SDL3RemovedSDL_CreateRGBSurfaceFromCheck.cpp
+    src/deprecated/SDL3RemovedSDL_CreateRGBSurfaceWithFormatFromCheck.cpp
 )
 clang_target_link_libraries(sdl2to3_plugin
     PRIVATE
