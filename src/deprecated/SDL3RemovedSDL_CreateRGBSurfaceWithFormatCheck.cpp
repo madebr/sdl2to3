@@ -18,7 +18,6 @@ void SDL3RemovedSDL_CreateRGBSurfaceWithFormatCheck::registerMatchers(clang::ast
     Finder->addMatcher(callExpr(callee(functionDecl(hasName("SDL_CreateRGBSurfaceWithFormat")))).bind("call_expr"), this);
 }
 
-#include <stdio.h>
 void SDL3RemovedSDL_CreateRGBSurfaceWithFormatCheck::check(const MatchFinder::MatchResult &Result) {
     const auto *matchExpr = Result.Nodes.getNodeAs<CallExpr>("call_expr");
     if (matchExpr->getNumArgs() != 5) {

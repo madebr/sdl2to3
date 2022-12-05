@@ -9,8 +9,18 @@ using namespace llvm;
 
 namespace sdl2to3::tidy::deprecated {
 
-/// Warns when using renamed SDL2 functions: SDL_CreateRGBSurface()
+struct SDL_pixelformat_info {
+    const char *str;
+    uint32_t bpp;
+    uint32_t red;
+    uint32_t grn;
+    uint32_t blu;
+    uint32_t alp;
+};
 
+extern const std::vector<SDL_pixelformat_info> SDL_MASKS;
+
+/// Warns when using renamed SDL2 functions: SDL_CreateRGBSurface()
 
 class SDL3RemovedSDL_CreateRGBSurfaceCheck : public ClangTidyCheck {
 public:
